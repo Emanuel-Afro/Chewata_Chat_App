@@ -71,32 +71,3 @@ To run this project, you will need to add the following environment variables to
 
 `REACT_APP_SECRET_KEY = 'your number(atleast 10 digit)'`
 
-- Authenticaton
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/login.PNG)
-
-- Real Time Chatting with Typing indicators
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/real-time.PNG)
-
-- One to One chat
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/mainscreen.PNG)
-
-- Search Users
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/search.PNG)
-
-- Create Group Chats
-![ScreenShot](https://raw.github.com/NitinVadadoriyaa/JerryChat/master/screenshorts/newgrp.PNG)
-
-- Notifications
-![ScreenShot](https://raw.github.com/NitinVadadoriyaa/JerryChat/master/screenshorts/group_notif.PNG)
-
-- Add or Remove users from group
-![ScreenShot](https://raw.github.com/NitinVadadoriyaa/JerryChat/master/screenshorts/addrem.PNG)
-
-- View Other user Profile
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/profile.PNG)
-
-
-
-
-## Made By
-NitinVadadoriya
