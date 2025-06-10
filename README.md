@@ -1,7 +1,7 @@
 
-# JerryChat
+# Chewata_Chat_App
 
-JerryChat is a Full Stack Chatting App. Uses Socket.io for real time communication and stores user details(sensetive) in encrypted format in Mongo DB Database.
+Chewata_Chat_App is a Full Stack Chatting App. Uses Socket.io for real time communication and stores user details(sensetive) in encrypted format in Mongo DB Database.
 
 
 ## Technolgoy Stack
@@ -12,19 +12,9 @@ JerryChat is a Full Stack Chatting App. Uses Socket.io for real time communicati
 
 **Database:** Mongo DB.
 
-## Demo
-
-https://jerrychat.onrender.com/
-
-
 
 
 ## Screenshots
-
-![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/mainscreen.PNG)
-
-
-
 
 
 ## Run Locally
@@ -32,7 +22,7 @@ https://jerrychat.onrender.com/
 Clone the project
 
 ```bash
-    git clone https://github.com/NitinVadadoriyaa/JerryChat
+    git clone https://github.com/Emanuel-Afro/Chewata_Chat_App.git
 ```
 
 Go to the project directory
@@ -80,33 +70,6 @@ To run this project, you will need to add the following environment variables to
 `NODE_ENV = production`
 
 `REACT_APP_SECRET_KEY = 'your number(atleast 10 digit)'`
-
-## Note
-``Before runing app make some change.
-
-1. backend / server.js 
-REPLACE : origin: "https://jerrychat.onrender.com/" To origin: "http://localhost:3000"
-
-2. backend / server.js
-REMOVE THIS CODE 
-
-const __dirname1 = path.resolve();
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname1, "/frontend/build")));
-
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
-  );
-} else {
-  app.get("/", (req, res) => {
-    res.send("API is running..");
-  });
-}
-
-3. /frontend/src/components/SingleChat.js
-REPLACE: ENDPOINT = "https://jerrychat.onrender.com/" TO ENDPOINT = "http://localhost:5000"
-## Features
 
 - Authenticaton
 ![ScreenShot](https://raw.github.com/piyush-eon/mern-chat-app/master/screenshots/login.PNG)
