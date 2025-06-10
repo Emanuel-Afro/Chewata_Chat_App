@@ -17,7 +17,7 @@ import { encrypt, decrypt } from "../Context/EncrDecr";
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import { ChatState } from "../Context/ChatProvider";
-const ENDPOINT = "https://jerrychat.onrender.com/"; // "https://jerrychat.onrender.com/"; -> After deployment
+const ENDPOINT = "http://localhost:3000"; // "https://jerrychat.onrender.com/"; -> After deployment
 // const ENDPOINT = "http://127.0.0.1:5000"; // localHost
 
 var socket, selectedChatCompare;
