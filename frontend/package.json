@@ -6,8 +6,10 @@
   "dependencies": {
     "@chakra-ui/icons": "^1.1.7",
     "@chakra-ui/react": "^1.8.9",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^13.5.0",
     "@types/crypto-js": "^4.2.1",
     "axios": "^0.21.4",
@@ -25,7 +27,7 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-     "start": "react-scripts --openssl-legacy-provider start",
+    "start": "react-scripts --openssl-legacy-provider start",
     "build": "react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

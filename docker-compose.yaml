@@ -1,0 +1,32 @@
+services:
+  mongo:
+    image: mongo:6.0.13
+    container_name: chewata_app_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: 
+      context: .
+      dockerfile: /backend/Dockerfile
+    container_name: chewata_app_backend
+    ports:
+      - "5000:5001"
+    environment:
+      - MONGO_URL=mongodb+srv://amanuel_mulugeta:351495aA@chewata-chat-app.xbownnl.mongodb.net/
+      - SECRET=c3VwZXJzZWNyZXRrZXkxMjMK
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: chewata_app_frontend
+    ports:
+      - "3000:3000" # or whatever port your frontend uses
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
