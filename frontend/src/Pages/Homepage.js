@@ -35,10 +35,10 @@ function Homepage() {
         borderWidth="1px"
       >
         <Text fontSize="4xl" fontFamily="Work sans">
-          JerryChat
+          Chewata App
         </Text>
         <Text fontSize="1xl" fontFamily="Work sans" color="green">
-          NitinCode
+          ByteFlow Labs
         </Text>
       </Box>
       <Box bg="white" w="100%" p={4} borderRadius="lg" borderWidth="1px">
