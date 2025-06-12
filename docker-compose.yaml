@@ -15,8 +15,8 @@ services:
     ports:
       - "5000:5001"
     environment:
-      - MONGO_URL=mongodb+srv://amanuel_mulugeta:351495aA@chewata-chat-app.xbownnl.mongodb.net/
-      - SECRET=c3VwZXJzZWNyZXRrZXkxMjMK
+      - MONGO_URL= proccess.env.MONGO_URL
+      - SECRET= proccess.env.SECRET
     depends_on:
       - mongo
 
