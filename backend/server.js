@@ -1,57 +1,58 @@
-//import library
 const express = require("express");
-const { chats } = require("./data/data"); // inport chats with de-structuring.
 const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+const path = require("path");
+const connectDB = require("./config/db"); // Adjust path if needed
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-const { Socket } = require("socket.io");
-const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 
+// Load env variables
 dotenv.config();
-connectDB(); // must call after dotenv.config()
-const app = express(); // create object/instance of express-class
 
-app.use(express.json()); // to accept json data
+// Connect to MongoDB
+connectDB();
 
+const app = express();
+
+app.use(express.json()); // To accept JSON data
+
+// API routes
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
 
-// --------------------------deployment------------------------------
-
+// Deployment serving (optional - uncomment if needed)
+/*
 const __dirname1 = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "/frontend/build")));
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
+  );
+} else {
+  app.get("/", (req, res) => {
+    res.send("API is running...");
+  });
+}
+*/
 
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static(path.join(__dirname1, "/frontend/build")));
-
-//   app.get("*", (req, res) =>
-//     res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
-//   );
-// } else {
-//   app.get("/", (req, res) => {
-//     res.send("API is running..");
-//   });
-// }
-
-// --------------------------deployment------------------------------
-
-// Error Handling middlewares
+// Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 
-const io = require("socket.io")(server, {
+// Create HTTP server for socket.io
+const server = http.createServer(app);
+
+// Setup socket.io
+const io = new Server(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "http://localhost:3000", // frontend connection
-    // origin: "http://127.0.0.1:3000", // localHost
+    origin: "http://localhost:3000",
   },
 });
 
@@ -59,25 +60,24 @@ io.on("connection", (socket) => {
   console.log("Connected to socket.io");
 
   socket.on("setup", (userData) => {
-    // every online user joined
-    socket.join(userData._id); // user create they own vertual-room based on id
+    socket.join(userData._id);
     socket.emit("connected");
   });
 
   socket.on("join chat", (room) => {
-    // chat-users only join vertiual-room
-    socket.join(room); // room is chat-id, vertual-room was created based on chat-id
+    socket.join(room);
   });
+
   socket.on("typing", (room) => socket.in(room).emit("typing"));
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
   socket.on("new message", (newMessageRecieved) => {
-    var chat = newMessageRecieved.chat;
+    const chat = newMessageRecieved.chat;
 
     if (!chat.users) return console.log("chat.users not defined");
 
     chat.users.forEach((user) => {
-      if (user._id == newMessageRecieved.sender._id) return;
+      if (user._id === newMessageRecieved.sender._id) return;
 
       socket.in(user._id).emit("message recieved", newMessageRecieved);
     });
@@ -88,3 +88,14 @@ io.on("connection", (socket) => {
     socket.leave(userData._id);
   });
 });
+
+// Start server **only after** DB connection succeeds
+connectDB()
+  .then(() => {
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to DB, server not started:", err.message);
+  });

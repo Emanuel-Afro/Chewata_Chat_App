@@ -4,6 +4,7 @@ services:
     container_name: chewata_app_db
     ports:
       - "27017:27017"
+    command: ["--replSet", "rs0"]  
     volumes:
       - mongo-data:/data/db
 
@@ -13,10 +14,16 @@ services:
       dockerfile: /backend/Dockerfile
     container_name: chewata_app_backend
     ports:
-      - "5000:5001"
+      - "5000:5000"
     environment:
+<<<<<<< HEAD
       - MONGO_URL= proccess.env.MONGO_URL
       - SECRET= proccess.env.SECRET
+=======
+       - MONGO_URI=mongodb+srv://amanuel_mulugeta:351495aA@chewata-chat-app.xbownnl.mongodb.net/Chewata-Chat-App?retryWrites=true&w=majority'
+       - JWT_SECRET=c3VwZXJzZWNyZXRrZXkxMjMK
+
+>>>>>>> 57eaac5 (DB connectivity and API communication with backend fixed)
     depends_on:
       - mongo
 
