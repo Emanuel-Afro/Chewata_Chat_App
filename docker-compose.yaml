@@ -10,9 +10,7 @@ services:
       - mongo-data:/data/db
 
   backend:
-    build: 
-      context: ./backend        # points to the backend folder
-      dockerfile: Dockerfile    # uses backend/Dockerfile
+    image: emanuelafro/chewata_chat_app-backend:1.0.0
     container_name: chewata_app_backend
     ports:
       - "5000:5000"              # correct mapping: host:container
@@ -22,8 +20,9 @@ services:
       - mongo
 
   frontend:
-    build:
-      context: ./frontend        # assuming frontend/Dockerfile exists
+    image: emanuelafro/chewata_app_frontend:1.0.0
+    # build:
+    #   context: ./frontend        # assuming frontend/Dockerfile exists
     container_name: chewata_app_frontend
     ports:
       - "3000:3000"
@@ -32,3 +31,5 @@ services:
 
 volumes:
   mongo-data:
+
+
