@@ -1,37 +1,32 @@
+version: '3.8'
+
 services:
   mongo:
     image: mongo:6.0.13
     container_name: chewata_app_db
     ports:
       - "27017:27017"
-    command: ["--replSet", "rs0"]  
     volumes:
       - mongo-data:/data/db
 
   backend:
     build: 
-      context: .
-      dockerfile: /backend/Dockerfile
+      context: ./backend        # points to the backend folder
+      dockerfile: Dockerfile    # uses backend/Dockerfile
     container_name: chewata_app_backend
     ports:
-      - "5000:5000"
-    environment:
-<<<<<<< HEAD
-      - MONGO_URL= proccess.env.MONGO_URL
-      - SECRET= proccess.env.SECRET
-=======
-       - MONGO_URI=mongodb+srv://amanuel_mulugeta:351495aA@chewata-chat-app.xbownnl.mongodb.net/Chewata-Chat-App?retryWrites=true&w=majority'
-       - JWT_SECRET=c3VwZXJzZWNyZXRrZXkxMjMK
-
->>>>>>> 57eaac5 (DB connectivity and API communication with backend fixed)
+      - "5000:5000"              # correct mapping: host:container
+    env_file:
+      - .env                     # make sure this file exists in root
     depends_on:
       - mongo
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend        # assuming frontend/Dockerfile exists
     container_name: chewata_app_frontend
     ports:
-      - "3000:3000" # or whatever port your frontend uses
+      - "3000:3000"
     depends_on:
       - backend
 
