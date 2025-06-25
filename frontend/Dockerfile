@@ -1,5 +1,5 @@
 #Frontend Dockerfile
-FROM node:latest
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
