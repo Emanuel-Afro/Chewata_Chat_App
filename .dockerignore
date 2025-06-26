@@ -4,3 +4,5 @@ Dockerfile
 npm-debug.log
 .git
 .gitignore
+./Dev_Infrastracture/Dev_Variable.tf
+./Dev_Infrastracture/.terraform
