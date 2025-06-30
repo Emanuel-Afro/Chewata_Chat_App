@@ -53,27 +53,127 @@ resource "aws_vpc" "Chewata_VPC" {
   cidr_block = var.chewata_cidr_block
   tags = {
     name = "Chewata_VPC_Dev"
-    Env = var.Chewata_Enviroment
+    Env  = var.Chewata_Enviroment
   }
 }
 
 resource "aws_subnet" "Chewata_Public_Subnet" {
-  vpc_id = aws_vpc.Chewata_VPC.id
-  cidr_block = var.chewata_cidr_block
+  vpc_id            = aws_vpc.Chewata_VPC.id
+  cidr_block        = var.chewata_cidr_block
   availability_zone = var.Chewata_Public_Subnet_AZ
   tags = {
     name = "Chewata_Public_Subnet"
-    Env = var.Chewata_Enviroment
+    Env  = var.Chewata_Enviroment
   }
 }
 
 resource "aws_subnet" "Chewata_Private_Subnet" {
-  vpc_id = aws_vpc.Chewata_VPC.id
-  cidr_block = var.chewata_cidr_block
+  vpc_id            = aws_vpc.Chewata_VPC.id
+  cidr_block        = var.chewata_cidr_block
   availability_zone = var.Chewata_Private_Subnet_AZ
   tags = {
     name = "Chewata_Private_Subnet"
-    Env = var.Chewata_Enviroment 
+    Env  = var.Chewata_Enviroment
   }
 }
 
+resource "aws_internet_gateway" "Chewata_Internet_Getway" { # Outgoing and Incoming Traffic
+  vpc_id = aws_vpc.Chewata_VPC.id
+  tags = {
+    name = "Chewata_Internet_Getway"
+    Env  = var.Chewata_Enviroment
+  }
+}
+
+resource "aws_route_table" "Chewata_Route_Table_Public" {
+  vpc_id = aws_vpc.Chewata_VPC.id
+  route {
+    cidr_block = var.chewata_cidr_block
+    gateway_id = aws_internet_gateway.Chewata_Internet_Getway.id
+  }
+}
+
+resource "aws_route_table_association" "Chewata_Public_Route_Association" {
+  subnet_id      = aws_subnet.Chewata_Public_Subnet.id
+  route_table_id = aws_route_table.Chewata_Route_Table_Public.id
+}
+
+# Elastic NAT Gateway
+
+resource "aws_eip" "Chewata_NAT_Ip" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "Chewata_Nat_Gw" {
+  allocation_id = aws_eip.Chewata_NAT_Ip.id
+  subnet_id     = aws_subnet.Chewata_Public_Subnet.id
+}
+
+resource "aws_route_table" "Chewata_Route_Table_Private" {
+  vpc_id = aws_vpc.Chewata_VPC.id
+  route {
+    cidr_block = var.chewata_cidr_block
+    gateway_id = aws_internet_gateway.Chewata_Internet_Getway.id
+  }
+}
+
+resource "aws_route_table_association" "Chewata_Private_Route_Association" {
+  subnet_id      = aws_subnet.Chewata_Private_Subnet.id
+  route_table_id = aws_route_table.Chewata_Route_Table_Private.id
+}
+
+resource "aws_security_group" "Chewata_sg_Front_End" {
+  vpc_id = aws_vpc.Chewata_VPC.id
+
+  for_each = var.Chewata_front_end_sg
+  ingress {
+    from_port = each.value
+    to_port   = each.value
+    protocol  = "tcp"
+  }
+
+  ingress {
+    from_port = each.value
+    to_port   = each.value
+    protocol  = "tcp"
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "Chewata_sg_Back_End" {
+  vpc_id   = aws_vpc.Chewata_VPC.id
+  for_each = var.Chewata_back_end_sg
+  ingress {
+    from_port       = each.value
+    to_port         = each.value
+    protocol        = "tcp"
+    security_groups = [aws_security_group.Chewata_sg_Front_End.id] #===Fix this tomorrow with priority
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "Chewata_MongoDB_sg" {
+  vpc_id   = aws_vpc.Chewata_VPC.id
+  for_each = var.Chewata_MongoDB_sg
+  ingress {
+    from_port       = each.value
+    to_port         = each.value
+    protocol        = "tcp"
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = -1
+    security_groups = [ aws_security_group.Chewata_sg_Back_End.id]
+  }
+}
