@@ -125,35 +125,28 @@ resource "aws_route_table_association" "Chewata_Private_Route_Association" {
 resource "aws_security_group" "Chewata_sg_Front_End" {
   vpc_id = aws_vpc.Chewata_VPC.id
 
-  for_each = var.Chewata_front_end_sg
-  ingress {
-    from_port = each.value
-    to_port   = each.value
-    protocol  = "tcp"
-  }
-
-  ingress {
-    from_port = each.value
-    to_port   = each.value
-    protocol  = "tcp"
-  }
+  # for_each = var.Chewata_front_end_sg
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" {
+  for_each          = var.Chewata_front_end_sg
+  type              = "ingress"
+  from_port         = each.value
+  to_port           = each.value
+  protocol          = "tcp"
+  security_group_id = aws_security_group.Chewata_sg_Front_End.id
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group" "Chewata_sg_Back_End" {
-  vpc_id   = aws_vpc.Chewata_VPC.id
-  for_each = var.Chewata_back_end_sg
-  ingress {
-    from_port       = each.value
-    to_port         = each.value
-    protocol        = "tcp"
-    security_groups = [aws_security_group.Chewata_sg_Front_End.id] #===Fix this tomorrow with priority
-  }
+  vpc_id = aws_vpc.Chewata_VPC.id
+  #for_each = var.Chewata_back_end_sg
   egress {
     from_port   = 0
     to_port     = 0
@@ -162,18 +155,106 @@ resource "aws_security_group" "Chewata_sg_Back_End" {
   }
 }
 
+resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" {
+  for_each                 = var.Chewata_back_end_sg
+  type                     = "ingress"
+  from_port                = each.value
+  to_port                  = each.value
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.Chewata_sg_Back_End.id
+  source_security_group_id = aws_security_group.Chewata_sg_Front_End.id
+  //cidr_blocks = [ "0.0.0.0/0" ]
+}
+
 resource "aws_security_group" "Chewata_MongoDB_sg" {
-  vpc_id   = aws_vpc.Chewata_VPC.id
-  for_each = var.Chewata_MongoDB_sg
-  ingress {
-    from_port       = each.value
-    to_port         = each.value
-    protocol        = "tcp"
-  }
+  vpc_id = aws_vpc.Chewata_VPC.id
+  # for_each = var.Chewata_MongoDB_sg
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = -1
-    security_groups = [ aws_security_group.Chewata_sg_Back_End.id]
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_security_group_rule" "Chewata_MongoDB_Sg_Rule" {
+  for_each                 = var.Chewata_MongoDB_sg
+  type                     = "ingress"
+  from_port                = each.value
+  to_port                  = each.value
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.Chewata_MongoDB_sg.id
+  source_security_group_id = aws_security_group.Chewata_sg_Back_End.id
+}
+
+resource "aws_s3_bucket" "Chewata_S3_Bucket" {
+  bucket        = "Chewata-Chat-App"
+  force_destroy = false
+  tags = {
+    name = "Chewata S3 Bucket"
+  }
+}
+
+#Block Public Access
+resource "aws_s3_bucket_public_access_block" "Chewata_Block_Public_Access" {
+  bucket                  = aws_s3_bucket.Chewata_S3_Bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Server-Side encription
+resource "aws_s3_bucket_server_side_encryption_configuration" "Chewata_Server_Side_Encription" {
+  bucket = aws_s3_bucket.Chewata_S3_Bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Enable versioning 
+resource "aws_s3_bucket_versioning" "Chewata_s3_Versioning" {
+  bucket = aws_s3_bucket.Chewata_S3_Bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Denay all traffic from HTTP
+
+resource "aws_s3_bucket_policy" "Chewata_s3_policy" {
+  bucket = aws_s3_bucket.Chewata_S3_Bucket.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "DenyInsecureTransport",
+        Effect    = "Deny",
+        Principal = "*",
+        Action    = "s3:*",
+        Resource = [
+          "${aws_s3_bucket.Chewata_S3_Bucket.arn}",
+          "${aws_s3_bucket.Chewata_S3_Bucket.arn}/*"
+        ],
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Application-Load Balancer
+
+resource "aws_alb" "Chewata_ALB" {
+  for_each = var.Chewata_ALB
+  name               = each.value
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.Chewata_sg_Front_End.id]
+  subnets            = [aws_subnet.Chewata_Public_Subnet.id]
 }
