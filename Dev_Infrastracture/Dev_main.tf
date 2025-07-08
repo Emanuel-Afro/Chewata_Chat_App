@@ -248,13 +248,36 @@ resource "aws_s3_bucket_policy" "Chewata_s3_policy" {
   })
 }
 
+# EC-2 Instance
+
+resource "aws_instance" "Chewata_EC2_Front-End" {
+  for_each = var.Chewata_Front_end_EC2
+    ami = each.value    # -----Fix this with urgent tomorrow morning!!! It is showing wrong AMI!!!!
+  instance_type = "t2.micro"
+  subnet_id = aws_subnet.Chewata_Public_Subnet.id
+
+ // security_groups = [aws_security_group_rule.Chewata_Front_End_Sg_Rule.id]
+}
+
 # Application-Load Balancer
 
-resource "aws_alb" "Chewata_ALB" {
-  for_each = var.Chewata_ALB
-  name               = each.value
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.Chewata_sg_Front_End.id]
-  subnets            = [aws_subnet.Chewata_Public_Subnet.id]
-}
+# resource "aws_alb" "Chewata_ALB" {
+#   # for_each           = var.Chewata_ALB
+#   name               = var.Chewata_ALB.name_1
+#   internal           = false
+#   load_balancer_type = var.Chewata_ALB.load_balancer_type
+#   security_groups    = [aws_security_group.Chewata_sg_Front_End.id]
+#   subnets            = [aws_subnet.Chewata_Public_Subnet.id]
+# }
+
+# # ALB target group
+
+# resource "aws_lb_target_group" "Chewata_ALB_target_group" {
+#   # for_each = var.Chewata_ALB
+#   name     = var.Chewata_ALB.name_2
+#   port     = var.Chewata_ALB.port
+#   protocol = var.Chewata_ALB.protocol
+#   vpc_id   = aws_vpc.Chewata_VPC.id
+# }
+
+# #ALB Listener
