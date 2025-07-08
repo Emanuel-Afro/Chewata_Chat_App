@@ -252,7 +252,7 @@ resource "aws_s3_bucket_policy" "Chewata_s3_policy" {
 
 resource "aws_instance" "Chewata_EC2_Front-End" {
   for_each = var.Chewata_Front_end_EC2
-    ami = each.value    # -----Fix this with urgent tomorrow morning!!! It is showing wrong AMI!!!!
+    ami = var.Chewata_Front_end_EC2.ami  # -----Fix this with urgent tomorrow morning!!! It is showing wrong AMI!!!!
   instance_type = "t2.micro"
   subnet_id = aws_subnet.Chewata_Public_Subnet.id
 
