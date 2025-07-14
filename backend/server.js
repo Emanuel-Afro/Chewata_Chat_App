@@ -38,6 +38,10 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 */
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 
 // Error handling middleware
 app.use(notFound);
@@ -88,6 +92,8 @@ io.on("connection", (socket) => {
     socket.leave(userData._id);
   });
 });
+
+
 
 // Start server **only after** DB connection succeeds
 connectDB()

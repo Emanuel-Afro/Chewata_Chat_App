@@ -50,26 +50,37 @@ variable "Chewata_MongoDB_sg" {
   }
 }
 
-# variable "Chewata_ALB" {
-#   description = "Chewata Application Load Balancer"
-#   type = object({
-#      name_1             = string
-#     name_2             = string
-#     load_balancer_type = string
-#     port               = number
-#     protocol           = string
- 
-#   })
-# }
-
-variable "Chewata_Front_end_EC2" {
-  description = "Chewata Front-End application EC2 Instances"
- type = map(string)
- default = {
-   "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_1"
-   "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_2"
-   ami = "ami-0b6d52d4a526e3ec3"
- }
+variable "Chewata_ALB_FE" {
+  description = "Chewata Application Load Balancer"
+  type = map(object({
+    FE_name_ALB        = string
+    FE_name_TG         = string
+    load_balancer_type = string
+    port               = number
+    protocol           = string
+  }))
 
 }
+# variable "Chewata_Front_end_EC2" {
+#   description = "Chewata Front-End application EC2 Instances"
+#  type = map(string)
+#  default = {
+#    "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_1"
+#    "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_2"
+#    ami = "ami-0b6d52d4a526e3ec3"
+#  }
 
+# }
+
+variable "Chewata_Front_End_HC" {
+  description = "Front-End ALB Heath Check"
+  type = object({
+    path                = string
+    protocol            = string
+    matcher             = number
+    interval            = number
+    timeout             = number
+    healthy_threshold   = number
+    unhealthy_threshold = number
+  })
+}

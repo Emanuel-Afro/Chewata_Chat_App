@@ -247,37 +247,61 @@ resource "aws_s3_bucket_policy" "Chewata_s3_policy" {
     ]
   })
 }
-
 # EC-2 Instance
+# resource "aws_instance" "Chewata_EC2_Front-End" {
+#   for_each = var.Chewata_Front_end_EC2
+#     ami = var.Chewata_Front_end_EC2.ami  # -----Fix this with urgent tomorrow morning!!! It is showing wrong AMI!!!!
+#   instance_type = "t2.micro"
+#   subnet_id = aws_subnet.Chewata_Public_Subnet.id
 
-resource "aws_instance" "Chewata_EC2_Front-End" {
-  for_each = var.Chewata_Front_end_EC2
-    ami = var.Chewata_Front_end_EC2.ami  # -----Fix this with urgent tomorrow morning!!! It is showing wrong AMI!!!!
-  instance_type = "t2.micro"
-  subnet_id = aws_subnet.Chewata_Public_Subnet.id
+// security_groups = [aws_security_group_rule.Chewata_Front_End_Sg_Rule.id]
 
- // security_groups = [aws_security_group_rule.Chewata_Front_End_Sg_Rule.id]
+#Application-Load Balancer For Front-End
+
+resource "aws_alb" "Chewata_ALB_FE" {
+  for_each           = var.Chewata_ALB_FE
+  name               = each.value.FE_name_ALB
+  internal           = false
+  load_balancer_type = each.value.load_balancer_type
+  security_groups    = [aws_security_group.Chewata_sg_Front_End.id]
+  subnets            = [aws_subnet.Chewata_Public_Subnet.id]
 }
 
-# Application-Load Balancer
+# ALB target group
 
-# resource "aws_alb" "Chewata_ALB" {
-#   # for_each           = var.Chewata_ALB
-#   name               = var.Chewata_ALB.name_1
-#   internal           = false
-#   load_balancer_type = var.Chewata_ALB.load_balancer_type
-#   security_groups    = [aws_security_group.Chewata_sg_Front_End.id]
-#   subnets            = [aws_subnet.Chewata_Public_Subnet.id]
+resource "aws_lb_target_group" "Chewata_ALB_target_group" {
+  for_each = var.Chewata_ALB_FE
+  name     = each.value.FE_name_TG
+  port     = each.value.port
+  protocol = each.value.protocol
+  vpc_id   = aws_vpc.Chewata_VPC.id
+
+  health_check {
+    path                = var.Chewata_Front_End_HC.path                # ALB will check the /health path for continuous testing
+    protocol            = var.Chewata_Front_End_HC.protocol            # The protocol used for the test
+    matcher             = var.Chewata_Front_End_HC.matcher             #Expected resust of the check
+    interval            = var.Chewata_Front_End_HC.interval            # Time difference to do the tests every ...
+    timeout             = var.Chewata_Front_End_HC.timeout             # Waiting time before TimeOut
+    healthy_threshold   = var.Chewata_Front_End_HC.healthy_threshold   # Number of success will mark it healthy
+    unhealthy_threshold = var.Chewata_Front_End_HC.unhealthy_threshold # Number of failures will mark it failed
+  }
+}
+
+#ALB Listener
+resource "aws_alb_listener" "Chewata_ALB_FE_Listener" {
+  for_each          = var.Chewata_ALB_FE
+  load_balancer_arn = aws_alb.Chewata_ALB_FE[each.key].arn
+  port              = each.value.port
+  protocol          = each.value.protocol
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.Chewata_ALB_target_group[each.key].arn
+
+  }
+}
+
+# Auto Scaling Group for Front-End
+# resource "aws_autoscaling_group" "Chewata_ASG_FE" {
+
 # }
-
-# # ALB target group
-
-# resource "aws_lb_target_group" "Chewata_ALB_target_group" {
-#   # for_each = var.Chewata_ALB
-#   name     = var.Chewata_ALB.name_2
-#   port     = var.Chewata_ALB.port
-#   protocol = var.Chewata_ALB.protocol
-#   vpc_id   = aws_vpc.Chewata_VPC.id
-# }
-
-# #ALB Listener
