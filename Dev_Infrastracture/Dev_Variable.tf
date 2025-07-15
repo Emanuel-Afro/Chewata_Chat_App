@@ -84,3 +84,18 @@ variable "Chewata_Front_End_HC" {
     unhealthy_threshold = number
   })
 }
+
+variable "Chewata_ASG_FE" {
+  description = "Front-End Auto-Scaling Group"
+  type = map(object({
+    name             = string
+    min              = number
+    max              = number
+    desired_capacity = number
+    EC2_name         = string
+    image_id         = string
+    instance_type    = string
+    grace_period     = number
+
+  }))
+}

@@ -302,6 +302,31 @@ resource "aws_alb_listener" "Chewata_ALB_FE_Listener" {
 }
 
 # Auto Scaling Group for Front-End
-# resource "aws_autoscaling_group" "Chewata_ASG_FE" {
+resource "aws_autoscaling_group" "Chewata_ASG_FE" {
+  for_each                  = var.Chewata_ASG_FE
+  name                      = each.value.name
+  min_size                  = each.value.min
+  max_size                  = each.value.max
+  desired_capacity          = each.value.desired_capacity
+  vpc_zone_identifier       = [aws_subnet.Chewata_Public_Subnet.id]
+  launch_configuration      = aws_launch_configuration.Chewata_EC2_FE_config[each.key].id
+  target_group_arns         = [aws_lb_target_group.Chewata_ALB_target_group["ALB_1"].arn]
+  health_check_type         = "ALB"
+  health_check_grace_period = each.value.grace_period
+}
 
-# }
+resource "random_id" "frontend_instance_id" {
+  byte_length = 4 # Generates 8-character hex 
+}
+
+resource "aws_launch_configuration" "Chewata_EC2_FE_config" {
+  for_each        = var.Chewata_ASG_FE
+  name            = "var.EC2_name-${random_id.frontend_instance_id.hex}"
+  image_id        = each.value.image_id
+  instance_type   = each.value.instance_type
+  user_data       = file("/start_up_FE.sh")
+  security_groups = [aws_security_group.Chewata_sg_Front_End.id]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
