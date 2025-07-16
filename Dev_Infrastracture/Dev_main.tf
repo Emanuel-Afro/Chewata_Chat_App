@@ -134,11 +134,11 @@ resource "aws_security_group" "Chewata_sg_Front_End" {
   }
 }
 
-resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" {
+resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" { // Need to resolve this!!!!!!
   for_each          = var.Chewata_front_end_sg
   type              = "ingress"
-  from_port         = each.value.Chewata_front_end_sg.from_port-1
-  to_port           = each.value.Chewata_front_end_sg.to_port-1
+  from_port         = each.value.from_port-1
+  to_port           = each.value.to_port-1
   protocol          = "tcp"
   security_group_id = aws_security_group.Chewata_sg_Front_End.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -155,11 +155,11 @@ resource "aws_security_group" "Chewata_sg_Back_End" {
   }
 }
 
-resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" {
+resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" { // Need to resolve this!!!!!!
   for_each                 = var.Chewata_back_end_sg
   type                     = "ingress"
-  from_port                = each.value.Chewata_back_end_sg.from_port-2
-  to_port                  = each.value.Chewata-Chewata_back_end_sg.to_port-2
+  from_port                = each.value.from_port-2
+  to_port                  = each.value.to_port-2
   protocol                 = "tcp"
   security_group_id        = aws_security_group.Chewata_sg_Back_End.id
   source_security_group_id = aws_security_group.Chewata_sg_Front_End.id
@@ -178,10 +178,10 @@ resource "aws_security_group" "Chewata_MongoDB_sg" {
 }
 
 resource "aws_security_group_rule" "Chewata_MongoDB_Sg_Rule" {
-  for_each                 = var.Chewata_MongoDB_sg
+  for_each                 = var.Chewata_mongo_sg
   type                     = "ingress"
-  from_port                = each.value
-  to_port                  = each.value
+  from_port                = each.value.from_port-3
+  to_port                  = each.value.from_port-3
   protocol                 = "tcp"
   security_group_id        = aws_security_group.Chewata_MongoDB_sg.id
   source_security_group_id = aws_security_group.Chewata_sg_Back_End.id
@@ -312,7 +312,7 @@ resource "aws_autoscaling_group" "Chewata_ASG_FE" {
   desired_capacity          = each.value.desired_capacity
   vpc_zone_identifier       = [aws_subnet.Chewata_Public_Subnet.id]
   launch_configuration      = aws_launch_configuration.Chewata_EC2_FE_config[each.key].id
-  target_group_arns         = [aws_lb_target_group.Chewata_ALB_target_group["ALB_1"].arn]
+  target_group_arns         = [aws_lb_target_group.Chewata_ALB_target_group["ALB_FE"].arn]
   health_check_type         = "ALB"
   health_check_grace_period = each.value.grace_period
 }

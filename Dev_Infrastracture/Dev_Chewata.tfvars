@@ -1,17 +1,25 @@
 Chewata_front_end_sg = {
   FE_sg = {
-  from_port-1 = 3000
-  from_port-1 = 433
+    from_port-1 = 443
+    to_port-1 = 443
   }
 
 
 }
 Chewata_back_end_sg = {
   BE_sg = {
-  from_port-2 = 5000
-  to_port-2   = 5000
+    from_port-2 = 5000
+    to_port-2   = 5000
   }
 }
+
+Chewata_mongo_sg = {
+  mongo_sg = {
+    from_port-3 = 27017
+    to_port-3   = 27017
+  }
+}
+
 Chewata_ALB_FE = {
   ALB_FE = {
     FE_name_ALB        = "ChewataAlbFE"

@@ -42,18 +42,27 @@ variable "Chewata_back_end_sg" {
   }))
 }
 
+variable "Chewata_mongo_sg" {
+  description = "Back-End Security Group"
+  type = map(object({
+    from_port-3= number
+    to_port-3   = number
+  }))
+}
+
+
 #  default = {
 #     from_port = 5000
 #     to_port   = 5000
 
-variable "Chewata_MongoDB_sg" {
-  description = "MongoDB Security Group"
-  type        = map(number)
-  default = {
-    from_port = 27017
-    to_port   = 27017
-  }
-}
+# variable "Chewata_MongoDB_sg" {
+#   description = "MongoDB Security Group"
+#   type        = map(number)
+#   default = {
+#     from_port = 27017
+#     to_port   = 27017
+#   }
+
 //===Front-End======
 variable "Chewata_ALB_FE" {
   description = "Chewata Application Load Balancer"
