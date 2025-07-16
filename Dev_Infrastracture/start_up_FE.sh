@@ -1,14 +1,18 @@
 #!/bin/bash
-# Update & install Docker
+
+# Install Docker
 sudo apt update -y
 sudo apt install -y docker.io
 
-# Start Docker
+# Install Docker Compose v2 plugin
+sudo apt install -y docker-compose-plugin
+
+# Start and enable Docker service
 sudo systemctl start docker
 sudo systemctl enable docker
 
-# Pull your Docker image from Docker Hub
-docker pull emanuelafro/chewata_chat_app-frontend:latest
+# Navigate to your code directory where docker-compose.yml exists
+cd /home/ubuntu/chewata_chat_app-frontend # <--- Change this to the correct path
 
-# Run the container on port 3000
-docker run -d -p 3000:3000 your-dockerhub-username/your-frontend-image:latest
+# Run your existing Docker Compose file
+sudo docker compose up -d frontend

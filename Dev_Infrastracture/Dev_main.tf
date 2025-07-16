@@ -137,8 +137,8 @@ resource "aws_security_group" "Chewata_sg_Front_End" {
 resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" {
   for_each          = var.Chewata_front_end_sg
   type              = "ingress"
-  from_port         = each.value
-  to_port           = each.value
+  from_port         = each.value.Chewata_front_end_sg.from_port-1
+  to_port           = each.value.Chewata_front_end_sg.to_port-1
   protocol          = "tcp"
   security_group_id = aws_security_group.Chewata_sg_Front_End.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -158,8 +158,8 @@ resource "aws_security_group" "Chewata_sg_Back_End" {
 resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" {
   for_each                 = var.Chewata_back_end_sg
   type                     = "ingress"
-  from_port                = each.value
-  to_port                  = each.value
+  from_port                = each.value.Chewata_back_end_sg.from_port-2
+  to_port                  = each.value.Chewata-Chewata_back_end_sg.to_port-2
   protocol                 = "tcp"
   security_group_id        = aws_security_group.Chewata_sg_Back_End.id
   source_security_group_id = aws_security_group.Chewata_sg_Front_End.id
@@ -267,6 +267,8 @@ resource "aws_alb" "Chewata_ALB_FE" {
   subnets            = [aws_subnet.Chewata_Public_Subnet.id]
 }
 
+#=========Front-End============
+
 # ALB target group
 
 resource "aws_lb_target_group" "Chewata_ALB_target_group" {
@@ -328,5 +330,51 @@ resource "aws_launch_configuration" "Chewata_EC2_FE_config" {
   security_groups = [aws_security_group.Chewata_sg_Front_End.id]
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+
+#==========Back-End========================
+
+resource "aws_alb" "Chewata_ALB_BE" {
+  for_each           = var.Chewata_ALB_BE
+  name               = each.value.BE_name_ALB
+  internal           = true
+  load_balancer_type = each.value.load_balancer_type
+  security_groups    = [aws_security_group.Chewata_sg_Back_End.id]
+  subnets            = [aws_subnet.Chewata_Private_Subnet.id]
+}
+
+# ALB target group
+
+resource "aws_lb_target_group" "Chewata_ALB_target_group_BE" {
+  for_each = var.Chewata_ALB_BE
+  name     = each.value.BE_name_TG
+  port     = each.value.port
+  protocol = each.value.protocol
+  vpc_id   = aws_vpc.Chewata_VPC.id
+
+  health_check {
+    path                = var.Chewata_Back_End_HC.path                # ALB will check the /health path for continuous testing
+    protocol            = var.Chewata_Back_End_HC.protocol            # The protocol used for the test
+    matcher             = var.Chewata_Back_End_HC.matcher             #Expected resust of the check
+    interval            = var.Chewata_Back_End_HC.interval            # Time difference to do the tests every ...
+    timeout             = var.Chewata_Back_End_HC.timeout             # Waiting time before TimeOut
+    healthy_threshold   = var.Chewata_Back_End_HC.healthy_threshold   # Number of success will mark it healthy
+    unhealthy_threshold = var.Chewata_Back_End_HC.unhealthy_threshold # Number of failures will mark it failed
+  }
+}
+
+#ALB Listener
+resource "aws_alb_listener" "Chewata_ALB_BE_Listener" {
+  for_each          = var.Chewata_ALB_BE
+  load_balancer_arn = aws_alb.Chewata_ALB_BE[each.key].arn
+  port              = 443
+  protocol          = each.value.protocol
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.Chewata_ALB_target_group_BE[each.key].arn
+
   }
 }

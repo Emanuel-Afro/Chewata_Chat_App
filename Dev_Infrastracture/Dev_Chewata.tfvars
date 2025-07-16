@@ -1,21 +1,30 @@
+Chewata_front_end_sg = {
+  FE_sg = {
+  from_port-1 = 3000
+  from_port-1 = 433
+  }
+
+
+}
+Chewata_back_end_sg = {
+  BE_sg = {
+  from_port-2 = 5000
+  to_port-2   = 5000
+  }
+}
 Chewata_ALB_FE = {
-  ALB_1 = {
+  ALB_FE = {
     FE_name_ALB        = "ChewataAlbFE"
     FE_name_TG         = "ChewataALBTargetGroupFE"
     protocol           = "HTTPS"
-    port               = 443
+    port               = 3000
     load_balancer_type = "application"
   }
 }
-# Chewata_Front_end_EC2 = {
-#   Dev_EC2_1 = "Dev_EC2_1"
-#   Dev_EC2_2 = "Dev_EC2_2"
-#   ami = "ami-0b6d52d4a526e3ec3"
-# }
 
 Chewata_Front_End_HC = {
   path                = "/heath"
-  protocol            = "HTTP"
+  protocol            = "HTTPS"
   matcher             = 200
   interval            = 30
   timeout             = 7
@@ -35,4 +44,26 @@ Chewata_ASG_FE = {
     grace_period     = 3000
 
   }
+}
+
+//=====Back-End==========
+
+Chewata_ALB_BE = {
+  ALB_BE = {
+    BE_name_ALB        = "ChewataAlbBE"
+    BE_name_TG         = "ChewataALBTargetGroupBE"
+    protocol           = "HTTPS"
+    port               = 5000
+    load_balancer_type = "application"
+  }
+}
+
+Chewata_Back_End_HC = {
+  path                = "/heath"
+  protocol            = "HTTPS"
+  matcher             = 200
+  interval            = 30
+  timeout             = 7
+  healthy_threshold   = 3
+  unhealthy_threshold = 5
 }

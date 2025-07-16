@@ -24,22 +24,27 @@ variable "Chewata_Private_Subnet_AZ" {
 
 variable "Chewata_front_end_sg" {
   description = "Front-End Security Group"
-  type        = map(number)
-  default = {
-    from_port = 3000
-    from_port = 433
-  }
+  type = map(object({
+    from_port-1 = number
+    to_port-1   = number
+  }))
+  #   default = {
+  #     from_port = 3000
+  #     from_port = 433
+  #   }
 }
 
 variable "Chewata_back_end_sg" {
   description = "Back-End Security Group"
-  type        = map(number)
-  default = {
-    from_port = 5000
-    to_port   = 5000
-
-  }
+  type = map(object({
+    from_port-2 = number
+    to_port-2   = number
+  }))
 }
+
+#  default = {
+#     from_port = 5000
+#     to_port   = 5000
 
 variable "Chewata_MongoDB_sg" {
   description = "MongoDB Security Group"
@@ -49,7 +54,7 @@ variable "Chewata_MongoDB_sg" {
     to_port   = 27017
   }
 }
-
+//===Front-End======
 variable "Chewata_ALB_FE" {
   description = "Chewata Application Load Balancer"
   type = map(object({
@@ -61,16 +66,6 @@ variable "Chewata_ALB_FE" {
   }))
 
 }
-# variable "Chewata_Front_end_EC2" {
-#   description = "Chewata Front-End application EC2 Instances"
-#  type = map(string)
-#  default = {
-#    "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_1"
-#    "Chewata_EC2_Front_End_1" = "Chewata_Dev_FE_2"
-#    ami = "ami-0b6d52d4a526e3ec3"
-#  }
-
-# }
 
 variable "Chewata_Front_End_HC" {
   description = "Front-End ALB Heath Check"
@@ -98,4 +93,31 @@ variable "Chewata_ASG_FE" {
     grace_period     = number
 
   }))
+}
+
+//=====Back-End=====
+
+variable "Chewata_ALB_BE" {
+  description = "Chewata Application Load Balancer"
+  type = map(object({
+    BE_name_ALB        = string
+    BE_name_TG         = string
+    load_balancer_type = string
+    port               = number
+    protocol           = string
+  }))
+
+}
+
+variable "Chewata_Back_End_HC" {
+  description = "Front-End ALB Heath Check"
+  type = object({
+    path                = string
+    protocol            = string
+    matcher             = number
+    interval            = number
+    timeout             = number
+    healthy_threshold   = number
+    unhealthy_threshold = number
+  })
 }
