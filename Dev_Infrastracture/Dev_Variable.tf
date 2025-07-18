@@ -45,7 +45,7 @@ variable "Chewata_back_end_sg" {
 variable "Chewata_mongo_sg" {
   description = "Back-End Security Group"
   type = map(object({
-    from_port-3= number
+    from_port-3 = number
     to_port-3   = number
   }))
 }
@@ -129,4 +129,20 @@ variable "Chewata_Back_End_HC" {
     healthy_threshold   = number
     unhealthy_threshold = number
   })
+}
+
+//======Back-End ASG=========
+
+variable "Chewata_ASG_BE" {
+  description = "Back-End Auto-Scaling Group"
+  type = map(object({
+    name             = string
+    min              = number
+    max              = number
+    desired_capacity = number
+    EC2_name         = string
+    image_id         = string
+    instance_type    = string
+    grace_period     = number
+  }))
 }

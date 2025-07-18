@@ -134,7 +134,7 @@ resource "aws_security_group" "Chewata_sg_Front_End" {
   }
 }
 
-resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" { // Need to resolve this!!!!!!
+resource "aws_security_group_rule" "Chewata_Front_End_Sg_Rule" { //Think about defining different security group for EC2!!
   for_each          = var.Chewata_front_end_sg
   type              = "ingress"
   from_port         = each.value.from_port-1
@@ -155,7 +155,7 @@ resource "aws_security_group" "Chewata_sg_Back_End" {
   }
 }
 
-resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" { // Need to resolve this!!!!!!
+resource "aws_security_group_rule" "Chewata_Back_End_Sg_Rule" { //Think about defining different security group for EC2!!
   for_each                 = var.Chewata_back_end_sg
   type                     = "ingress"
   from_port                = each.value.from_port-2
@@ -378,3 +378,34 @@ resource "aws_alb_listener" "Chewata_ALB_BE_Listener" {
 
   }
 }
+
+# Auto Scaling Group for Back-End
+resource "aws_autoscaling_group" "Chewata_ASG_BE" {
+  for_each                  = var.Chewata_ASG_BE
+  name                      = each.value.name
+  min_size                  = each.value.min
+  max_size                  = each.value.max
+  desired_capacity          = each.value.desired_capacity
+  vpc_zone_identifier       = [aws_subnet.Chewata_Private_Subnet.id]
+  launch_configuration      = aws_launch_configuration.Chewata_EC2_BE_config[each.key].id
+  target_group_arns         = [aws_lb_target_group.Chewata_ALB_target_group_BE["ALB_BE"].arn]
+  health_check_type         = "ALB"
+  health_check_grace_period = each.value.grace_period
+}
+
+resource "random_id" "backend_instance_id" {
+  byte_length = 4 # Generates 8-character hex 
+}
+
+resource "aws_launch_configuration" "Chewata_EC2_BE_config" {
+  for_each        = var.Chewata_ASG_BE
+  name            = "var.EC2_name-${random_id.frontend_instance_id.hex}"
+  image_id        = each.value.image_id
+  instance_type   = each.value.instance_type
+  user_data       = file("/start_up_BE.sh")
+  security_groups = [aws_security_group.Chewata_sg_Back_End.id]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+

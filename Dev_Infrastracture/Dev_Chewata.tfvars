@@ -1,7 +1,7 @@
 Chewata_front_end_sg = {
   FE_sg = {
     from_port-1 = 443
-    to_port-1 = 443
+    to_port-1   = 443
   }
 
 
@@ -41,7 +41,7 @@ Chewata_Front_End_HC = {
 }
 
 Chewata_ASG_FE = {
-  ASG = {
+  ASG_FE = {
     name             = "Chewata_Auto_Scaling_Group"
     min              = 2
     max              = 5
@@ -54,7 +54,7 @@ Chewata_ASG_FE = {
   }
 }
 
-//=====Back-End==========
+//=====Back-End ALB==========
 
 Chewata_ALB_BE = {
   ALB_BE = {
@@ -74,4 +74,20 @@ Chewata_Back_End_HC = {
   timeout             = 7
   healthy_threshold   = 3
   unhealthy_threshold = 5
+}
+
+//====Back-End ASG ===========
+
+Chewata_ASG_BE = {
+  ASG_BE = {
+    name             = "Chewata_Auto_Scaling_Group"
+    min              = 2
+    max              = 5
+    desired_capacity = 2
+    EC2_name         = "Chewata-Dev-EC2"
+    image_id         = "ami-0b6d52d4a526e3ec3"
+    instance_type    = "t2.micro"
+    grace_period     = 3000
+
+  }
 }
