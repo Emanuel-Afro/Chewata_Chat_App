@@ -409,3 +409,63 @@ resource "aws_launch_configuration" "Chewata_EC2_BE_config" {
   }
 }
 
+#========Monitoring==============
+
+resource "aws_cloudwatch_log_group" "Chewata_FE_Log" {
+  name              = "/Chewata/App_FE"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "Chewata_BE_Log" {
+  name              = "/Chewata/App_BE"
+  retention_in_days = 30
+}
+
+#-------Create IAM Policy----------
+resource "aws_iam_policy" "chewata_iam_policy" {
+  name = "ChewataCloudWatchPolicy"
+  policy = jsonencode({
+    version = "2012-10-17"
+    Statement = [
+      {
+        Action = [                # List of allowed log actions
+          "logs:CreateLogGroup",  # Allows creating a log group
+          "logs:CreateLogStream", # Allows creating a log stream within a group
+          "logs:PutLogEvents"     # Allows pushing logs to the stream
+        ],
+        Effect   = "Allow", # Grant the above permissions
+        Resource = ""       # Apply this policy to all log resources
+      }
+    ]
+  })
+}
+
+#----------Creating IAM Role---------------
+resource "aws_iam_role" "chewata_ec2_cloudwatch_role" {
+  name = "chewata-ec2-cloudwatch-role"
+  assume_role_policy = jsonencode({
+    version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.awsamazon.com" # EC2 is allowed to assume this role
+        },
+        Action = "sts:AssumeRole" # Required action to assume the role
+      }
+    ]
+  })
+}
+
+#--------------Attach the IAM Role with the policy---------------
+resource "aws_iam_role_policy_attachment" "chewata_iam_policy_attachment" {
+  role       = aws_iam_role.chewata_ec2_cloudwatch_role.name
+  policy_arn = aws_iam_policy.chewata_iam_policy.arn
+}
+
+#-------------Create IAM profile-----------------
+resource "aws_iam_instance_profile" "chewata_cloudwatch_profile" {
+  name = "chewata-cloudwatch-profile"
+  role = aws_iam_role.chewata_ec2_cloudwatch_role.name
+}
+
