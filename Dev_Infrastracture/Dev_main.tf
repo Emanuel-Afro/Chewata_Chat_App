@@ -322,12 +322,14 @@ resource "random_id" "frontend_instance_id" {
 }
 
 resource "aws_launch_configuration" "Chewata_EC2_FE_config" {
-  for_each        = var.Chewata_ASG_FE
-  name            = "var.EC2_name-${random_id.frontend_instance_id.hex}"
-  image_id        = each.value.image_id
-  instance_type   = each.value.instance_type
-  user_data       = file("/start_up_FE.sh")
-  security_groups = [aws_security_group.Chewata_sg_Front_End.id]
+  for_each             = var.Chewata_ASG_FE
+  name                 = "var.EC2_name-${random_id.frontend_instance_id.hex}"
+  image_id             = each.value.image_id
+  instance_type        = each.value.instance_type
+  user_data            = file("/start_up_FE.sh")
+  security_groups      = [aws_security_group.Chewata_sg_Front_End.id]
+  iam_instance_profile = aws_iam_instance_profile.chewata_cloudwatch_profile.name
+
   lifecycle {
     create_before_destroy = true
   }
@@ -398,12 +400,14 @@ resource "random_id" "backend_instance_id" {
 }
 
 resource "aws_launch_configuration" "Chewata_EC2_BE_config" {
-  for_each        = var.Chewata_ASG_BE
-  name            = "var.EC2_name-${random_id.frontend_instance_id.hex}"
-  image_id        = each.value.image_id
-  instance_type   = each.value.instance_type
-  user_data       = file("/start_up_BE.sh")
-  security_groups = [aws_security_group.Chewata_sg_Back_End.id]
+  for_each             = var.Chewata_ASG_BE
+  name                 = "var.EC2_name-${random_id.frontend_instance_id.hex}"
+  image_id             = each.value.image_id
+  instance_type        = each.value.instance_type
+  user_data            = file("/start_up_BE.sh")
+  security_groups      = [aws_security_group.Chewata_sg_Back_End.id]
+  iam_instance_profile = aws_iam_instance_profile.chewata_cloudwatch_profile.name
+
   lifecycle {
     create_before_destroy = true
   }
@@ -467,5 +471,71 @@ resource "aws_iam_role_policy_attachment" "chewata_iam_policy_attachment" {
 resource "aws_iam_instance_profile" "chewata_cloudwatch_profile" {
   name = "chewata-cloudwatch-profile"
   role = aws_iam_role.chewata_ec2_cloudwatch_role.name
+}
+
+#----------Alarm_ Monitoring-----------------
+resource "aws_cloudwatch_metric_alarm" "chewata_fe_cpu_alarm" {
+  for_each = var.Chewata_ASG_FE
+  alarm_name          = "Chewata_Front-End High-CPU"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 5
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/AutoScaling"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Triggers if CPU Utilization exceeds 70% for 30 seconds"
+  dimensions = {
+    AutoScalingGroupName = each.value.name
+}
+}
+resource "aws_cloudwatch_metric_alarm" "chewata_be_cpu_alarm" {
+  for_each = var.Chewata_ASG_BE
+  alarm_name          = "Chewata_Back-End High-CPU"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 5
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/AutoScaling"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Triggers if CPU Utilization exceeds 70% for 30 seconds"
+  dimensions = {
+    AutoScalingGroupName = each.value.name
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "chewata_fe_disk_alarm" {
+  alarm_name          = "Chewata_Front-End High-Disk_Space"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 5
+  metric_name         = "DiskUsedPercent"
+  namespace           = "CWagent"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 80
+  alarm_description   = "Triggers if Disk Utilization exceeds 70% for 30 seconds"
+  dimensions = {
+     path = "/"
+    fstype = "xfs"
+    //instance_id = [aws_launch_configuration.Chewata_EC2_BE_config.id]
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "chewata_be_disk_alarm" {
+  alarm_name          = "Chewata_Back-End High-Disk_Space"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 5
+  metric_name         = "DiskUsedPercent"
+  namespace           = "CWagent"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 80
+  alarm_description   = "Triggers if Disk Utilization exceeds 70% for 30 seconds"
+  dimensions = {
+    path = "/"
+    fstype = "xfs"
+    //instance_id = [aws_launch_configuration.Chewata_EC2_BE_config.id]
+  }
 }
 
