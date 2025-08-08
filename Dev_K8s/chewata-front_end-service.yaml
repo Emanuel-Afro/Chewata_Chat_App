@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service 
+metadata:
+  name: chewata-frontend-service
+  namespace: chewata-chat-app 
+  labels:
+    app: chewata-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: chewata-frontend 
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
