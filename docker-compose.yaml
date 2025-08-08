@@ -10,7 +10,7 @@ services:
       - mongo-data:/data/db
 
   backend:
-    image: emanuelafro/chewata_chat_app-backend:1.0.0
+    image: emanuelafro/chewata_chat_app-backend:1.0.1
     container_name: chewata_app_backend
     ports:
       - "5000:5000"              # correct mapping: host:container
@@ -20,7 +20,7 @@ services:
       - mongo
 
   frontend:
-    image: emanuelafro/chewata_app_frontend:1.0.0
+    image: emanuelafro/chewata_chat_app-frontend:1.0.1
     # build:
     #   context: ./frontend        # assuming frontend/Dockerfile exists
     container_name: chewata_app_frontend

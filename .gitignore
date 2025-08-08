@@ -3,6 +3,7 @@ frontend/node_modules
 .env
 detailed_sample_users.json
 Dev_Infrastracture/Dev_Variable.tf
+Dev_Infrastracture/Dev_Chewata.tfvars
 .terraform
 *.tfstate
 *.tfstate.*

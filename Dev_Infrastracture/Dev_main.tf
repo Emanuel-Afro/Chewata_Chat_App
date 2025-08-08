@@ -59,8 +59,8 @@ resource "aws_vpc" "Chewata_VPC" {
 
 resource "aws_subnet" "Chewata_Public_Subnet" {
   vpc_id            = aws_vpc.Chewata_VPC.id
-  cidr_block        = var.chewata_cidr_block
-  availability_zone = var.Chewata_Public_Subnet_AZ
+  cidr_block        = var.Chewata_Public_Subnet_AZ.cidr_block
+  availability_zone = var.Chewata_Public_Subnet.availability_zone
   tags = {
     name = "Chewata_Public_Subnet"
     Env  = var.Chewata_Enviroment
@@ -69,8 +69,8 @@ resource "aws_subnet" "Chewata_Public_Subnet" {
 
 resource "aws_subnet" "Chewata_Private_Subnet" {
   vpc_id            = aws_vpc.Chewata_VPC.id
-  cidr_block        = var.chewata_cidr_block
-  availability_zone = var.Chewata_Private_Subnet_AZ
+  cidr_block        = var.Chewata_Private_Subnet.cidr_block
+  availability_zone = var.Chewata_Private_Subnet.availability_zone
   tags = {
     name = "Chewata_Private_Subnet"
     Env  = var.Chewata_Enviroment
@@ -538,4 +538,3 @@ resource "aws_cloudwatch_metric_alarm" "chewata_be_disk_alarm" {
     //instance_id = [aws_launch_configuration.Chewata_EC2_BE_config.id]
   }
 }
-
