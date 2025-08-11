@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service 
 metadata:
   name: chewata-frontend-service
-  namespace: chewata-chat-app 
+  namespace: default
   labels:
     app: chewata-frontend
 spec:

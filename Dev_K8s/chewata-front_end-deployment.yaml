@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chewata-frontend-deployment
+  namespace: default
   labels:
     app: chewata-frontend
 spec:
@@ -21,8 +22,8 @@ spec:
           - containerPort: 3000
         resources:
           limits:
-            cpu: "500m"
-            memory: "512Mi"
+            cpu: "2"
+            memory: "2Gi"
           requests:
-            cpu: "250m"
-            memory: "256Mi"
+            cpu: "500m"
+            memory: "1Gi"
