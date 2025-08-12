@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chewata-frontend-deployment
-  namespace: default
+  namespace: chewata-chat-app
   labels:
     app: chewata-frontend
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: chewata-frontend
@@ -22,8 +22,8 @@ spec:
           - containerPort: 3000
         resources:
           limits:
-            cpu: "2"
-            memory: "2Gi"
-          requests:
             cpu: "500m"
             memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
