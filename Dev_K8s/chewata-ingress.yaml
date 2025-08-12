@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chewata-ingress
+  namespace: chewata-chat-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: chewata-chat.com
+      http: 
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: chewata-frontend-service
+              port:
+                number: 80
