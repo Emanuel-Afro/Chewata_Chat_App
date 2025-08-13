@@ -18,6 +18,9 @@ spec:
       containers:
       - name: chewata-frontend
         image: emanuelafro/chewata_chat_app-frontend:1.0.1
+        env: 
+        - name: DANGEROUSLY_DISABLE_HOST_CHECK
+          value: "true"
         ports:
           - containerPort: 3000
         resources:

@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-    - host: chewata-chat.com
+    - host: chewatachat.com
       http: 
         paths:
         - path: /
