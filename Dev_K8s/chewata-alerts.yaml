@@ -1,0 +1,192 @@
+# -----------------------------
+# 1️⃣ Namespace for monitoring
+# -----------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chewata-monitoring
+# -----------------------------
+# 2️⃣ Alertmanager ConfigMap
+#    - This contains the email configuration for sending alerts
+# -----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: chewata-monitoring
+data:
+  alertmanager.yml: |
+    global:
+      # SMTP settings for sending email
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alert@chewata.com'
+      smtp_auth_username: 'alert@chewata.com'
+      smtp_auth_password: 'aacfb dgkd psph brsg'
+    # Routing configuration: send all alerts to 'email-receiver'
+    route:
+      receiver: 'email-receiver'
+
+    # Define the receiver
+    receivers:
+      - name: 'email-receiver'
+        email_configs:
+          - to: 'amanuel.mulugeta351495@gmail.com'
+
+---
+
+# -----------------------------
+# 3️⃣ Alertmanager Deployment & Service
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chewata-alertmanager
+  namespace: chewata-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+        - name: chewata-alertmanager
+          image: prom/alertmanager:v0.25.0
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chewata-alertmanager
+  namespace: chewata-monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9093
+      targetPort: 9093
+  selector:
+    app: alertmanager
+
+---
+
+# -----------------------------
+# 4️⃣ Prometheus ConfigMap
+# -----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chewata-prometheus-config
+  namespace: chewata-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    # Load alert rules from ConfigMap
+    rule_files:
+      - /etc/prometheus/rules/chewata-rules.yml
+
+    # Configure Alertmanager endpoint
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: ['alertmanager.monitoring.svc:9093']
+
+    # Scrape metrics from pods in 'chew' namespace
+    scrape_configs:
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace]
+            action: keep
+            regex: chew
+
+---
+
+# -----------------------------
+# 5️⃣ Alert Rule ConfigMap
+#    - This is the key part for memory alerts
+# -----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chewata-alert-rules
+  namespace: chewata-monitoring
+data:
+  chewata-rules.yml: |
+    groups:
+      - name: chewata-frontend
+        rules:
+          - alert: HighMemoryUsage
+            # PromQL expression: checks average memory usage of all pods in 'chew' namespace
+            expr: avg(container_memory_usage_bytes{namespace="chew"}) / avg(container_spec_memory_limit_bytes{namespace="chew"}) * 100 > 85
+            # Trigger only if condition persists for 1 minute
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High memory usage in chewata-frontend"
+              description: "Memory usage is above 50% for more than 1 minute"
+
+---
+
+# -----------------------------
+# 6️⃣ Prometheus Deployment & Service
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chewata-prometheus
+  namespace: chewata-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: chewata-prometheus
+          image: prom/prometheus:v2.50.0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chewata-prometheus
+  namespace: chewata-monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: 9090
+  selector:
+    app: prometheus
