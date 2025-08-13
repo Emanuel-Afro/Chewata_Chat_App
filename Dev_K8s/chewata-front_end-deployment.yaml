@@ -1,3 +1,4 @@
+#Deployment-Config
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,3 +31,81 @@ spec:
           requests:
             cpu: "250m"
             memory: "512Mi"
+        livenessProbe:    #Are you Alive?...Pod
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10 # wait 10sec before first check
+          periodSeconds: 30 # Every 30 seconds check
+        readinessProbe: # Can you recive Traffic?...Application
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+#Ingress-Config          
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chewata-ingress
+  namespace: chewata-chat-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: chewatachat.com
+      http: 
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: chewata-frontend-service
+              port:
+                number: 80
+#Service-Config
+---
+apiVersion: v1
+kind: Service 
+metadata:
+  name: chewata-frontend-service
+  namespace: chewata-chat-app
+  labels:
+    app: chewata-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: chewata-frontend 
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+# Horizontal_Pod_Scaling
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chewata-horizontal-pod-scaling
+  namespace: chewata-chat-app
+spec:
+  scaleTargetRef: # Target to be scaled
+    apiVersion: apps/v1
+    kind: Deployment
+    name: chewata-frontend-deployment
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+    - type: Resource
+      resource: 
+        name: cpu
+        target: 
+          type: Utilization
+          averageUtilization: 70
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 90      
