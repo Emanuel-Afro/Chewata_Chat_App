@@ -5,9 +5,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: chewata-monitoring
+
 # -----------------------------
 # 2️⃣ Alertmanager ConfigMap
-#    - This contains the email configuration for sending alerts
 # -----------------------------
 apiVersion: v1
 kind: ConfigMap
@@ -17,22 +17,16 @@ metadata:
 data:
   alertmanager.yml: |
     global:
-      # SMTP settings for sending email
       smtp_smarthost: 'smtp.gmail.com:587'
       smtp_from: 'alert@chewata.com'
       smtp_auth_username: 'alert@chewata.com'
       smtp_auth_password: 'aacfb dgkd psph brsg'
-    # Routing configuration: send all alerts to 'email-receiver'
     route:
       receiver: 'email-receiver'
-
-    # Define the receiver
     receivers:
       - name: 'email-receiver'
         email_configs:
           - to: 'amanuel.mulugeta351495@gmail.com'
-
----
 
 # -----------------------------
 # 3️⃣ Alertmanager Deployment & Service
@@ -79,8 +73,6 @@ spec:
   selector:
     app: alertmanager
 
----
-
 # -----------------------------
 # 4️⃣ Prometheus ConfigMap
 # -----------------------------
@@ -93,18 +85,12 @@ data:
   prometheus.yml: |
     global:
       scrape_interval: 15s
-
-    # Load alert rules from ConfigMap
     rule_files:
       - /etc/prometheus/rules/chewata-rules.yml
-
-    # Configure Alertmanager endpoint
     alerting:
       alertmanagers:
         - static_configs:
-            - targets: ['alertmanager.monitoring.svc:9093']
-
-    # Scrape metrics from pods in 'chew' namespace
+            - targets: ['chewata-alertmanager.chewata-monitoring.svc:9093']
     scrape_configs:
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
@@ -114,11 +100,8 @@ data:
             action: keep
             regex: chew
 
----
-
 # -----------------------------
-# 5️⃣ Alert Rule ConfigMap
-#    - This is the key part for memory alerts
+# 5️⃣ Alert Rule ConfigMap (CPU + Memory)
 # -----------------------------
 apiVersion: v1
 kind: ConfigMap
@@ -126,22 +109,27 @@ metadata:
   name: chewata-alert-rules
   namespace: chewata-monitoring
 data:
+ #=--------Correct this------------------
   chewata-rules.yml: |
     groups:
       - name: chewata-frontend
         rules:
           - alert: HighMemoryUsage
-            # PromQL expression: checks average memory usage of all pods in 'chew' namespace
-            expr: avg(container_memory_usage_bytes{namespace="chew"}) / avg(container_spec_memory_limit_bytes{namespace="chew"}) * 100 > 85
-            # Trigger only if condition persists for 1 minute
+            expr: avg(container_memory_usage_bytes{namespace="chewata-monitoring"}) / avg(container_spec_memory_limit_bytes{namespace="chewata-monitoring"}) * 100 > 55 
             for: 1m
             labels:
               severity: critical
             annotations:
               summary: "High memory usage in chewata-frontend"
-              description: "Memory usage is above 50% for more than 1 minute"
-
----
+              description: "Memory usage is above 85% for more than 1 minute"
+          - alert: HighCPUUsage
+            expr: sum(rate(container_cpu_usage_seconds_total{namespace="chewata-monitoring"}[1m])) / sum(container_spec_cpu_limit_cores{namespace="chewata-monitoring"}) > 0.5
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High CPU usage in chewata-frontend"
+              description: "CPU usage is above 80% for more than 1 minute"
 
 # -----------------------------
 # 6️⃣ Prometheus Deployment & Service
@@ -175,7 +163,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: prometheus-config
+            name: chewata-prometheus-config
 
 ---
 apiVersion: v1

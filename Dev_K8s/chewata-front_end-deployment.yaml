@@ -94,7 +94,7 @@ spec:
     kind: Deployment
     name: chewata-frontend-deployment
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 4
 
   metrics:
     - type: Resource
@@ -102,19 +102,19 @@ spec:
         name: cpu
         target: 
           type: Utilization
-          averageUtilization: 70
+          averageUtilization: 80
     - type: Resource
       resource:
           name: memory
           target:
             type: Utilization
-            averageUtilization: 90        
+            averageUtilization: 80       
   behavior:
     scaleDown:
-      stabilizationWindowSeconds: 60  # Scale-Down after 60 seconds
+      stabilizationWindowSeconds: 15  # Scale-Down after 60 seconds
       policies: 
         - type: Percent
-          value: 50   # maximum remove 50% of the  pods at a time
+          value: 100   # maximum remove 50% of the  pods at a time
           periodSeconds: 30
     scaleUp:
       stabilizationWindowSeconds: 30
