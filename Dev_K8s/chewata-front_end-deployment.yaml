@@ -35,14 +35,14 @@ spec:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 10 # wait 10sec before first check
-          periodSeconds: 30 # Every 30 seconds check
+          initialDelaySeconds: 60 # wait 10sec before first check
+          periodSeconds: 60 # Every 30 seconds check
         readinessProbe: # Can you recive Traffic?...Application
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 10
+          initialDelaySeconds: 60
+          periodSeconds: 60
 #Ingress-Config          
 ---
 apiVersion: networking.k8s.io/v1
@@ -94,7 +94,7 @@ spec:
     kind: Deployment
     name: chewata-frontend-deployment
   minReplicas: 1
-  maxReplicas: 4
+  maxReplicas: 3
 
   metrics:
     - type: Resource
