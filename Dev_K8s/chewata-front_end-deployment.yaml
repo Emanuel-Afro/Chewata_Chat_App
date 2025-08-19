@@ -94,7 +94,7 @@ spec:
     kind: Deployment
     name: chewata-frontend-deployment
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 5
 
   metrics:
     - type: Resource
