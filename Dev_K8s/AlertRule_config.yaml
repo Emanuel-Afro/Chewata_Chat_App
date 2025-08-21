@@ -1,0 +1,29 @@
+# -----------------------------
+# 5️⃣ Alert Rule ConfigMap (CPU + Memory)
+# -----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chewata-alert-rules
+  namespace: chewata-monitoring
+data:
+  chewata-rules.yml: |
+    groups:
+      - name: chewata-frontend
+        rules:
+          - alert: HighMemoryUsage
+            expr: avg(container_memory_usage_bytes{namespace="chewata-chat-app"}) / avg(container_spec_memory_limit_bytes{namespace="chewata-chat-app"}) * 100 > 55
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High memory usage in chewata-frontend"
+              description: "Memory usage is above 55% for more than 1 minute"
+          - alert: HighCPUUsage
+            expr: sum(rate(container_cpu_usage_seconds_total{namespace="chewata-chat-app"}[1m])) / sum(container_spec_cpu_limit_cores{namespace="chewata-chat-app"}) > 0.5
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High CPU usage in chewata-frontend"
+              description: "CPU usage is above 50% for more than 1 minute"

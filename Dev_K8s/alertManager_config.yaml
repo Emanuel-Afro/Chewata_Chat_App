@@ -1,0 +1,21 @@
+# -----------------------------
+# 2️⃣ Alertmanager ConfigMap
+# -----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: chewata-monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alert@chewata.com'
+      smtp_auth_username: 'alert@chewata.com'
+      smtp_auth_password: 'aacfb dgkd psph brsg'
+    route:
+      receiver: 'email-receiver'
+    receivers:
+      - name: 'email-receiver'
+        email_configs:
+          - to: 'amanuel.mulugeta351495@gmail.com'
